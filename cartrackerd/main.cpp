@@ -5,12 +5,16 @@
 #include <thread>
 #include <vector>
 #include <optional>
+#include <fstream>
+#include <filesystem>
 
 #define BUFFER_LEN 4096
-#define SCAN_INTERVAL_SEC = 5
+#define SCAN_INTERVAL_SEC 5
+#define DEFAULT_WIFI_INTERFACE "wlan0"
 
 bool didScan = false;
 int secondsSinceLastScan = 0;
+bool isConnected = false;
 
 struct WifiNetwork
 {
@@ -20,6 +24,23 @@ struct WifiNetwork
     std::string flags;
     std::optional<std::string> ssid;
 };
+
+std::string get_wifi_interface(std::filesystem::path programDir)
+{
+    std::ifstream file(programDir / "interface.txt");
+    if (!file.good())
+    {
+        return DEFAULT_WIFI_INTERFACE;
+    }
+
+    std::string line;
+    if (!std::getline(file, line))
+    {
+        return DEFAULT_WIFI_INTERFACE;
+    }
+
+    return line;
+}
 
 int send_request(wpa_ctrl *interface, std::string request, std::string &response, void (*msg_cb)(char *msg, size_t len))
 {
@@ -99,8 +120,6 @@ bool get_scan_results(wpa_ctrl *ctrl, std::vector<WifiNetwork> &results)
 
             if (matches.length() < 5)
             {
-                // Missing field, invalid line
-                std::cout << "Ignored line: " << line << std::endl;
                 continue;
             }
 
@@ -131,12 +150,30 @@ bool get_scan_results(wpa_ctrl *ctrl, std::vector<WifiNetwork> &results)
     return true;
 }
 
+void try_connect_hotspot(wpa_ctrl *ctrl, std::vector<WifiNetwork> networks)
+{
+    for (WifiNetwork network : networks)
+    {
+        if (!network.ssid.has_value())
+            continue;
+        if (network.ssid.value() == "XFINITY")
+        {
+            std::cout << "FOUND XFINITY" << std::endl;
+        }
+    }
+}
+
 void run_wifi_task(wpa_ctrl *ctrl)
 {
     std::string state;
     if (!get_wifi_state(ctrl, state))
     {
         return;
+    }
+
+    if (state == "COMPLETED")
+    {
+        isConnected = true;
     }
 
     if (didScan && state != "SCANNING")
@@ -148,33 +185,66 @@ void run_wifi_task(wpa_ctrl *ctrl)
             return;
         }
 
-        // Send the wifi networks to our server now
-        int a = 1;
+        // Look for XFINITY hotspot and connect
+        try_connect_hotspot(ctrl, results);
 
         didScan = false;
         secondsSinceLastScan = 0;
         return;
     }
 
-    if (state == "DISCONNECTED" && secondsSinceLastScan >= 5)
+    if (state == "DISCONNECTED")
     {
-        // scan for hotspots
-        didScan = true;
-        secondsSinceLastScan = 0;
-        start_scanning(ctrl);
+        isConnected = false;
+        if (secondsSinceLastScan >= 5)
+        {
+            // scan for hotspots
+            didScan = true;
+            secondsSinceLastScan = 0;
+            start_scanning(ctrl);
+        }
     }
 
     std::cout << "wifi state: " << state << std::endl;
     secondsSinceLastScan++;
 }
 
-int main()
+std::string getDirectory()
 {
+    char pBuf[257];
+    size_t len = sizeof(pBuf) - 1;
+    int bytes = readlink("/proc/self/exe", pBuf, len);
+    if (bytes >= 0) {
+        pBuf[bytes] = '\0';
+    } else {
+        pBuf[256] = '\0';
+    }
+
+    return std::string(pBuf);
+}
+
+int main(int argc, char **argv)
+{
+    std::filesystem::path binaryFile(getDirectory());
+    if (!binaryFile.has_parent_path()) {
+        std::cout << "no parent folder found, this should never happen!" << std::endl;
+        std::cout << "Binary file path: " << binaryFile << std::endl;
+        return 1;
+    }
+
+    std::filesystem::path programDir = binaryFile.parent_path();
+
     std::cout << "cartrackerd by jluims" << std::endl;
-    wpa_ctrl *ctrl = wpa_ctrl_open("/var/run/wpa_supplicant/wlx984827e72b3d");
+
+    std::string interface = get_wifi_interface(programDir);
+    std::cout << "using interface '" << interface << "'" << std::endl;
+
+    std::string path("/var/run/wpa_supplicant/" + interface);
+    wpa_ctrl *ctrl = wpa_ctrl_open(path.c_str());
     if (ctrl == nullptr)
     {
-        std::cout << "Failed to open wpa_supplicant control interface" << std::endl;
+        std::cout << "failed to open wpa_supplicant control interface." << std::endl;
+        std::cout << "please ensure the interface '" << interface << "' exists and wpa_supplicant is running!" << std::endl;
         return 1;
     }
 
