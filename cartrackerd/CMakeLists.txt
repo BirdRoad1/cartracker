@@ -9,7 +9,7 @@ find_library(wpa_client libwpa_client.a)
 # Add an executable target
 # The first argument is the name of the executable
 # Subsequent arguments are the source files that make up the executable
-add_executable(cartrackerd main.cpp)
+add_executable(cartrackerd src src/main.cpp src/wifi_helper.cpp)
 target_link_libraries(cartrackerd PRIVATE wpa_client)
 
 # (Optional) Set the C++ standard for the target
