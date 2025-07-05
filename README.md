@@ -21,6 +21,13 @@ Due to the lack of a GPS module, the location updates may not be very precise. I
 
 The Raspberry Pi's processor is weak, and relying on a battery means our code must be as lightweight as possible and unecessary services should be disabled.
 
+## Dependencies
+
+Install dependencies using apt:
+```
+sudo apt install libwpa-client-dev
+```
+
 ### Requirements
 
 - [Raspberry Pi Zero W 2](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/) - $15
