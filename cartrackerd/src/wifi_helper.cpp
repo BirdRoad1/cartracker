@@ -4,12 +4,55 @@
 #include <filesystem>
 #include <optional>
 #include <exception>
+#include <thread>
 
 #define BUFFER_LEN 4096
 
-bool WifiHelper::init(std::string interface) {
+void WifiHelper::event_thread(wpa_ctrl *ctrl, void (*callback)(std::string))
+{
+    while (true)
+    {
+        std::string buffer(BUFFER_LEN, '\0');
+        size_t reply_len = buffer.size();
+        if (wpa_ctrl_recv(ctrl, &buffer[0], &reply_len) == 0 && reply_len > 0)
+        {
+            buffer.resize(reply_len);
+            callback(buffer);
+        }
+    }
+
+    wpa_ctrl_detach(ctrl);
+}
+
+bool WifiHelper::init_events(std::string interface, void (*callback)(std::string))
+{
     std::string path("/var/run/wpa_supplicant/" + interface);
     wpa_ctrl *ctrl = wpa_ctrl_open(path.c_str());
+
+    if (ctrl == nullptr)
+    {
+        std::cout << "failed to open wpa_supplicant event interface." << std::endl;
+        return false;
+    }
+
+    int result;
+    if ((result = wpa_ctrl_attach(ctrl)) != 0)
+    {
+        std::cout << "HANDLE:" << ctrl << std::endl;
+        std::cout << "failed to attach wpa_supplicant event monitor: " << result << std::endl;
+        return false;
+    }
+
+    std::thread t(event_thread, ctrl, callback);
+    t.detach();
+    return true;
+}
+
+bool WifiHelper::init(std::string interface)
+{
+    std::string path("/var/run/wpa_supplicant/" + interface);
+    wpa_ctrl *ctrl = wpa_ctrl_open(path.c_str());
+
     if (ctrl == nullptr)
     {
         std::cout << "failed to open wpa_supplicant control interface." << std::endl;
@@ -23,8 +66,10 @@ bool WifiHelper::init(std::string interface) {
     return true;
 }
 
-bool WifiHelper::check_init() {
-    if (!did_init) {
+bool WifiHelper::check_init()
+{
+    if (!did_init)
+    {
         throw std::runtime_error("did not init!");
         return false;
     }
@@ -34,7 +79,8 @@ bool WifiHelper::check_init() {
 
 bool WifiHelper::start_scanning()
 {
-    if (!check_init()) return false;
+    if (!check_init())
+        return false;
     std::string res;
 
     if (send_request("SCAN", res, [](char *msg, size_t len)
@@ -46,9 +92,12 @@ bool WifiHelper::start_scanning()
     return true;
 }
 
-void WifiHelper::connect(const WifiNetwork& network) {
-    if (!check_init()) return;
-    if (!network.ssid.has_value()) {
+void WifiHelper::connect(const WifiNetwork &network)
+{
+    if (!check_init())
+        return;
+    if (!network.ssid.has_value())
+    {
         std::cout << "cannot connect to network without ssid" << std::endl;
         return;
     }
@@ -59,44 +108,52 @@ void WifiHelper::connect(const WifiNetwork& network) {
 
     std::string setRes;
     // Remove all networks to prevent bloat
-    if (send_request("REMOVE_NETWORK all", setRes, nullptr) == -1 || setRes != "OK\n") {
+    if (send_request("REMOVE_NETWORK all", setRes, nullptr) == -1 || setRes != "OK\n")
+    {
         std::cout << "failed to connect (remove all networks)" << std::endl;
         return;
     }
 
     std::string networkId;
-    if (send_request("ADD_NETWORK", networkId, nullptr) == -1) {
+    if (send_request("ADD_NETWORK", networkId, nullptr) == -1)
+    {
         std::cout << "failed to connect (add network)" << std::endl;
         std::cout << networkId << std::endl;
         return;
     }
 
-    if (send_request(std::string("SET_NETWORK ") + networkId + " ssid \"" + ssid + "\"", setRes, nullptr) == -1 || setRes != "OK\n") {
+    if (send_request(std::string("SET_NETWORK ") + networkId + " ssid \"" + ssid + "\"", setRes, nullptr) == -1 || setRes != "OK\n")
+    {
         std::cout << "failed to connect (set network ssid)" << std::endl;
         return;
     }
 
-    if (send_request(std::string("SET_NETWORK ") + networkId + " bssid " + bssid, setRes, nullptr) == -1 || setRes != "OK\n") {
+    if (send_request(std::string("SET_NETWORK ") + networkId + " bssid " + bssid, setRes, nullptr) == -1 || setRes != "OK\n")
+    {
         std::cout << "failed to connect (set network bssid)" << std::endl;
         return;
     }
 
-    if (send_request(std::string("SET_NETWORK ") + networkId + " key_mgmt NONE", setRes, nullptr) == -1 || setRes != "OK\n") {
+    if (send_request(std::string("SET_NETWORK ") + networkId + " key_mgmt NONE", setRes, nullptr) == -1 || setRes != "OK\n")
+    {
         std::cout << "failed to connect (set key_mgmt)" << std::endl;
         return;
     }
 
-    if (send_request(std::string("ENABLE_NETWORK ") + networkId, setRes, nullptr) == -1 || setRes != "OK\n") {
+    if (send_request(std::string("ENABLE_NETWORK ") + networkId, setRes, nullptr) == -1 || setRes != "OK\n")
+    {
         std::cout << "failed to connect (enable network)" << std::endl;
         return;
     }
 
-    if (send_request(std::string("SELECT_NETWORK ") + networkId, setRes, nullptr) == -1 || setRes != "OK\n") {
+    if (send_request(std::string("SELECT_NETWORK ") + networkId, setRes, nullptr) == -1 || setRes != "OK\n")
+    {
         std::cout << "failed to connect (select network)" << std::endl;
         return;
     }
-    
-    if (send_request("REASSOCIATE", setRes, nullptr) == -1 || setRes != "OK\n") {
+
+    if (send_request("REASSOCIATE", setRes, nullptr) == -1 || setRes != "OK\n")
+    {
         std::cout << "failed to connect (reassociate)" << std::endl;
         return;
     }
@@ -106,35 +163,40 @@ void WifiHelper::connect(const WifiNetwork& network) {
 
 void WifiHelper::try_connect_hotspot(std::vector<WifiNetwork> networks)
 {
-    if (!check_init()) return;
+    if (!check_init())
+        return;
     std::cout << "Try connect?" << std::endl;
-    WifiNetwork* xfinityNetwork;
+    WifiNetwork *xfinityNetwork = nullptr;
     int rssid = -10000;
-    for (WifiNetwork& network : networks)
+    for (WifiNetwork &network : networks)
     {
-        if (!network.ssid.has_value())
-            continue;
-
-        if (network.ssid.value() == "xfinitywifi" && network.rssid > rssid)
+        if (network.ssid.has_value()) {
+            std::cout << network.ssid.value() << std::endl;
+        }
+        
+        if (network.ssid.has_value() && network.ssid.value() == "xfinitywifi" && network.rssi > rssid)
         {
             // Try connect
-            rssid = network.rssid;
+            rssid = network.rssi;
             xfinityNetwork = &network;
         }
     }
 
-    if (xfinityNetwork == 0) {
+    if (xfinityNetwork == 0)
+    {
         std::cout << "No xfinity network found" << std::endl;
         return;
-    } 
-    
+    }
+    printf("Address of xfinityNetwork: %p\n", (void*)xfinityNetwork);
+    std::cout << "DA SSID: " << xfinityNetwork->ssid.value() << std::endl;
+
     connect(*xfinityNetwork);
 }
 
-
 int WifiHelper::send_request(std::string request, std::string &response, void (*msg_cb)(char *msg, size_t len))
 {
-    if (!check_init()) return -1;
+    if (!check_init())
+        return -1;
     std::cout << "[DEBUG] Sending request: " << request << std::endl;
 
     std::string buffer(BUFFER_LEN, '\0');
@@ -155,7 +217,8 @@ int WifiHelper::send_request(std::string request, std::string &response, void (*
 
 bool WifiHelper::get_wifi_state(std::string &out)
 {
-    if (!check_init()) return false;
+    if (!check_init())
+        return false;
 
     std::string res;
     if (send_request("STATUS", res, nullptr) != 0)
@@ -178,8 +241,9 @@ bool WifiHelper::get_wifi_state(std::string &out)
 
 bool WifiHelper::get_scan_results(std::vector<WifiNetwork> &results)
 {
-    if (!check_init()) return false;
-    
+    if (!check_init())
+        return false;
+
     std::string res;
 
     if (send_request("SCAN_RESULTS", res, nullptr) == -1)

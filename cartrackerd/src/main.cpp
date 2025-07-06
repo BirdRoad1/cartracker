@@ -9,14 +9,18 @@
 #include <filesystem>
 #include "wifi_helper.h"
 #include <unistd.h>
+#include <curl/curl.h>
+#include "api.h"
+#include <mutex>
+#include <condition_variable>
+#include "config.h"
 
-#define SCAN_INTERVAL_SEC 1
 #define DEFAULT_WIFI_INTERFACE "wlan0"
 
-bool didScan = false;
 int secondsSinceLastScan = 0;
-bool isConnected = false;
-
+std::mutex mtx;
+std::condition_variable cv;
+bool scanComplete = false;
 
 std::string get_wifi_interface(std::filesystem::path programDir)
 {
@@ -35,7 +39,22 @@ std::string get_wifi_interface(std::filesystem::path programDir)
     return line;
 }
 
-void run_wifi_task(WifiHelper& wifi)
+void handleEvent(std::string event)
+{
+    std::cout << "Receive event: " << event << std::endl;
+    if (event.contains("CTRL-EVENT-SCAN-RESULTS"))
+    {
+        std::cout << "SCAN RESULTS!" << std::endl;
+        // Scan complete!
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            scanComplete = true;
+        }
+        cv.notify_one();
+    }
+}
+
+void run_wifi_task(WifiHelper &wifi, const ConfigData &config)
 {
     std::string state;
     if (!wifi.get_wifi_state(state))
@@ -44,13 +63,17 @@ void run_wifi_task(WifiHelper& wifi)
         return;
     }
 
-    if (state == "COMPLETED")
+    if (secondsSinceLastScan >= config.interval)
     {
-        isConnected = true;
-    }
+        // scan for hotspots
+        secondsSinceLastScan = 0;
+        wifi.start_scanning();
 
-    if (didScan && state != "SCANNING")
-    {
+        std::unique_lock<std::mutex> lock(mtx);
+        cv.wait(lock, []
+                { return scanComplete; });
+        scanComplete = false;
+
         std::vector<WifiNetwork> results;
         if (!wifi.get_scan_results(results))
         {
@@ -58,27 +81,19 @@ void run_wifi_task(WifiHelper& wifi)
             return;
         }
 
-        // Look for XFINITY hotspot and connect
-        wifi.try_connect_hotspot(results);
-
-        didScan = false;
-        secondsSinceLastScan = 0;
-        return;
-    }
-
-    if (state == "DISCONNECTED" || state == "INACTIVE")
-    {
-        isConnected = false;
-        if (secondsSinceLastScan >= SCAN_INTERVAL_SEC)
+        if (state == "DISCONNECTED" || state == "INACTIVE")
         {
-            // scan for hotspots
-            didScan = true;
-            secondsSinceLastScan = 0;
-            wifi.start_scanning();
+            //    Look for XFINITY hotspot and connect
+            wifi.try_connect_hotspot(results);
+        }
+        else
+        {
+            // Send to the server
+            API::sendNetworks(config.serverUrl, results);
         }
     }
 
-    std::cout << "wifi state: " << state << std::endl;
+    std::cout << "[DEBUG] Wifi state: " << state << std::endl;
     secondsSinceLastScan++;
 }
 
@@ -87,9 +102,12 @@ std::string getDirectory()
     char pBuf[257];
     size_t len = sizeof(pBuf) - 1;
     int bytes = readlink("/proc/self/exe", pBuf, len);
-    if (bytes >= 0) {
+    if (bytes >= 0)
+    {
         pBuf[bytes] = '\0';
-    } else {
+    }
+    else
+    {
         pBuf[256] = '\0';
     }
 
@@ -99,7 +117,8 @@ std::string getDirectory()
 int main(int argc, char **argv)
 {
     std::filesystem::path binaryFile(getDirectory());
-    if (!binaryFile.has_parent_path()) {
+    if (!binaryFile.has_parent_path())
+    {
         std::cout << "no parent folder found, this should never happen!" << std::endl;
         std::cout << "Binary file path: " << binaryFile << std::endl;
         return 1;
@@ -107,20 +126,33 @@ int main(int argc, char **argv)
 
     std::filesystem::path programDir = binaryFile.parent_path();
 
+    auto configPath = programDir / "config.json";
+
+    ConfigData config;
+    if (!Config::read(configPath, config))
+    {
+        std::cout << "failed to read config: " << configPath << std::endl;
+        return 1;
+    }
+
     std::cout << "cartrackerd by jluims" << std::endl;
 
-    std::string interface = get_wifi_interface(programDir);
-    std::cout << "using interface '" << interface << "'" << std::endl;
+    std::cout << "using interface '" << config.interface << "'" << std::endl;
 
     WifiHelper wifiHelper;
-
-    if (!wifiHelper.init(interface)) {
-        return 0;
+    while (true)
+    {
+        if (wifiHelper.init_events(config.interface, handleEvent) && wifiHelper.init(config.interface)) {
+            break;
+        } else {
+            std::cout << "Failed to init! Retrying in 1s..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
     }
 
     while (true)
     {
-        run_wifi_task(wifiHelper);
+        run_wifi_task(wifiHelper, config);
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
