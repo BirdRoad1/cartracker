@@ -54,7 +54,7 @@ CMakeUserPresets.json
 .vscode
 build/
 sysroot/
-sysroot2/
+.env
 
 node_modules/
 dist/
