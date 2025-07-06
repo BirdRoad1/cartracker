@@ -1,0 +1,28 @@
+{
+  "name": "cartracker-server",
+  "version": "1.0.0",
+  "description": "Backend server for cartracker",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx --watch src/index.ts",
+    "start": "node ."
+  },
+  "type": "module",
+  "repository": "https://git.jlmsz.com/jluims/cartracker",
+  "author": "jluims",
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "dotenv": "^17.0.1",
+    "prisma": "^6.11.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@prisma/client": "6.11.1",
+    "express": "^5.1.0",
+    "zod": "^3.25.74"
+  }
+}

@@ -53,3 +53,8 @@ CMakeUserPresets.json
 
 .vscode
 build/
+sysroot/
+sysroot2/
+
+node_modules/
+dist/
