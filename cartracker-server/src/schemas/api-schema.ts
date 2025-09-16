@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const WifiSchema = z.object({
+export const ApSchema = z.object({
   bssid: z.string().length(17),
   ssid: z.string().max(128),
   rssi: z.number().int().max(0).min(-255),
@@ -8,4 +8,11 @@ export const WifiSchema = z.object({
   frequency: z.number(),
 });
 
-export const PostDataSchema = z.array(WifiSchema);
+export const WifiSchema = z.array(
+  z.object({
+    aps: z.array(ApSchema),
+    createdAt: z.number().int(),
+  })
+);
+
+export const PostDataSchema = WifiSchema;

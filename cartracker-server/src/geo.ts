@@ -1,9 +1,9 @@
 import "dotenv/config";
 import z from "zod";
-import { WifiSchema } from "./schemas/api-schema";
+import { ApSchema } from "./schemas/api-schema";
 import { Geolocation, GeolocationSchema } from "./schemas/geo-schema";
 
-type WifiNetwork = z.infer<typeof WifiSchema>;
+type WifiNetwork = z.infer<typeof ApSchema>;
 
 function getChannel(frequency: number) {
   return Math.floor((frequency - 2407) / 5);
