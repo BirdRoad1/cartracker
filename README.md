@@ -21,27 +21,31 @@ Due to the lack of a GPS module, the location updates may not be very precise. I
 
 The Raspberry Pi's processor is weak, and relying on a battery means our code must be as lightweight as possible and unecessary services should be disabled.
 
-The Pi Zero 2 W does not support 5Ghz and xfinitywifi hotspots have [used 5Ghz](https://xdaforums.com/t/xfinity-hotspots-are-now-all-5ghz-connect-with-a-2-4ghz-phone.4293719/) for a while now. This means that we need a 5Ghz USB Wi-Fi dongle and a microUSB male to USB-A female adapter further raising our costs. 
+The Pi 3 Model A+ may use too much power at the moment, we should look at more efficient options later.
 
 ## Dependencies
 
-Install dependencies using apt:
+Install dependencies on the Pi using apt:
+```bash
+sudo apt install libwpa-client-dev libssl-dev zlib1g-dev libc6-dev wpasupplicant
 ```
-sudo apt install libwpa-client-dev libcurl4-openssl-dev libssl-dev zlib1g-dev libc6-dev
+
+If cross-compiling, run this on your computer.
+```bash
+sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 ```
 
 ### Requirements
 
-- [Raspberry Pi Zero W 2](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/) - $15
+- [Raspberry Pi 3 Model A+](https://www.raspberrypi.com/products/raspberry-pi-3-model-a-plus/) - $25
 - MicroSD card - $7
 - MicroUSB cable - $5?
 - USB power bank or other power supply - $10
-- 5GHz USB Wi-Fi dongle - $8
-- USB-A female to microUSB male adapter - $6
 - Access to XFINITY hotspots
   - You must be an Xfinity postpaid subscriber or buy the Xfinity NOW pass ($10/month)
 
-Total: $55 (as an Xfinity subscriber) or $65+$10/month.
+Total: $47 (as an Xfinity subscriber) or $47+$10/month.
+
 ### cartrackerd
 
 A daemon written in C++ that handles automatic connections to XFINITY hotspots and sending nearby SSIDs (and RSSI levels), bluetooth devices, and other data to the server.
