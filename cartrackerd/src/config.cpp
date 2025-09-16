@@ -4,6 +4,7 @@
 #include <optional>
 #include <nlohmann/json.hpp>
 #include <iostream>
+#include <vector>
 
 using json = nlohmann::json;
 
@@ -24,9 +25,10 @@ bool Config::read(std::filesystem::path configFile, ConfigData &config)
         double interval = j.value("interval", 5);
         std::string serverUrl = j["serverUrl"].get<std::string>();
         std::string interface = j.value("interface", "wlan0");
+        std::vector<std::string> hotspotNames = j["hotspot_names"];
 
         config = ConfigData{
-            interval, serverUrl, interface};
+            interval, serverUrl, interface, hotspotNames};
     }
     catch (json::exception &ex)
     {
