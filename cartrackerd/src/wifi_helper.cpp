@@ -46,7 +46,8 @@ void WifiHelper::parse_scan_output(std::string output, std::vector<WifiNetwork> 
   WifiNetwork network;
   std::string currentWifiBssid = "";
   std::optional<std::string> currentWifiSsid = "";
-  int currentWifiRssi = 1000;
+  int currentWifiRssi = 1000000;
+  int currentWifiFreq = -1000000;
 
   std::vector<WifiNetwork> networks;
 
@@ -58,7 +59,7 @@ void WifiHelper::parse_scan_output(std::string output, std::vector<WifiNetwork> 
       {
         WifiNetwork newNetwork{
             .bssid = currentWifiBssid,
-            .frequency = 0,
+            .frequency = currentWifiFreq,
             .rssi = currentWifiRssi,
             .flags = "",
             .ssid = currentWifiSsid};
@@ -80,6 +81,11 @@ void WifiHelper::parse_scan_output(std::string output, std::vector<WifiNetwork> 
       currentWifiSsid = line.substr(7, line.size() - 7);
     }
 
+    if (line.starts_with("\tfreq: "))
+    {
+      currentWifiFreq = std::stoi(line.substr(7, line.size() - 7));
+    }
+
     if (line.starts_with("\tsignal: "))
     {
       std::regex exp("-(\\d*)\\.\\d* dBm");
@@ -96,7 +102,7 @@ void WifiHelper::parse_scan_output(std::string output, std::vector<WifiNetwork> 
   {
     WifiNetwork newNetwork{
         .bssid = currentWifiBssid,
-        .frequency = 0,
+        .frequency = currentWifiFreq,
         .rssi = currentWifiRssi,
         .flags = "",
         .ssid = currentWifiSsid};

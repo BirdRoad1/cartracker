@@ -12,28 +12,9 @@
 #include "dhclient.h"
 
 #define DEFAULT_WIFI_INTERFACE "wlan0"
-// #define MAX_SCANS_PER_INTERVAL 10
-#define SCAN_TIMEOUT 30
 
 int secondsSinceLastScan = 100000;
 RequestQueue requestQueue;
-
-std::string get_wifi_interface(std::filesystem::path programDir)
-{
-  std::ifstream file(programDir / "interface.txt");
-  if (!file.good())
-  {
-    return DEFAULT_WIFI_INTERFACE;
-  }
-
-  std::string line;
-  if (!std::getline(file, line))
-  {
-    return DEFAULT_WIFI_INTERFACE;
-  }
-
-  return line;
-}
 
 void run_wifi_task(WifiHelper &wifi, ConfigData &config)
 {
