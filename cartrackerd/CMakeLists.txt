@@ -3,16 +3,10 @@ cmake_minimum_required(VERSION 3.20)
 # Define the project name and optionally the version and languages
 project(cartrackerd VERSION 1.0 LANGUAGES CXX)
 
-set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
-set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
-
-set(CMAKE_SYSROOT /home/user/Documents/cartracker/cartrackerd/sysroot)
-set(CMAKE_FIND_ROOT_PATH /home/user/Documents/cartracker/cartrackerd/sysroot)
-
 # Add an executable target
 # The first argument is the name of the executable
 # Subsequent arguments are the source files that make up the executable
-add_executable(cartrackerd src src/main.cpp src/wifi_helper.cpp src/api.cpp src/config.cpp)
+add_executable(cartrackerd src src/main.cpp src/wifi_helper.cpp src/api.cpp src/config.cpp src/request_queue.cpp src/dhclient.cpp)
 
 find_library(lib_curl NAMES libcurl.so.4.8.0)
 

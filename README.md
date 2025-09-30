@@ -27,10 +27,10 @@ The Pi 3 Model A+ may use too much power at the moment, we should look at more e
 
 Install dependencies on the Pi using apt:
 ```bash
-sudo apt install libwpa-client-dev libssl-dev zlib1g-dev libc6-dev wpasupplicant
+sudo apt install cmake make g++ libcurl4-openssl-dev iw
 ```
 
-If cross-compiling, run this on your computer.
+If cross-compiling, run this as well.
 ```bash
 sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 ```
@@ -41,10 +41,10 @@ sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 - MicroSD card - $7
 - MicroUSB cable - $5?
 - USB power bank or other power supply - $10
-- Access to XFINITY hotspots
+- Access to XFINITY hotspots or any other open hotspots with no captive portal
   - You must be an Xfinity postpaid subscriber or buy the Xfinity NOW pass ($10/month)
 
-Total: $47 (as an Xfinity subscriber) or $47+$10/month.
+Total: $47 plus $10/month if not an Xfinity subscriber.
 
 ### cartrackerd
 
