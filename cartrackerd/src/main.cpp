@@ -47,7 +47,7 @@ void run_wifi_task(WifiHelper &wifi, ConfigData &config)
   secondsSinceLastScan = 0;
 
   std::vector<WifiNetwork> networks;
-  wifi.scan(networks);
+  wifi.scan(config.interface, networks);
   std::cout << "Scan done!" << std::endl;
   requestQueue.add_request(networks);
 

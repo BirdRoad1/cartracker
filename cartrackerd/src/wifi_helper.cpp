@@ -34,7 +34,11 @@ std::string run_cmd(const std::string &cmd)
   return result;
 }
 
-void parse_scan_output(std::string output, std::vector<WifiNetwork> &outNetworks)
+void WifiHelper::init(const std::string& interface) {
+  run_cmd("ip link set " + interface + " up");
+}
+
+void WifiHelper::parse_scan_output(std::string output, std::vector<WifiNetwork> &outNetworks)
 {
   std::stringstream ss(output);
   std::string line;
@@ -103,9 +107,10 @@ void parse_scan_output(std::string output, std::vector<WifiNetwork> &outNetworks
   outNetworks = networks;
 }
 
-bool WifiHelper::scan(std::vector<WifiNetwork> &results)
+bool WifiHelper::scan(const std::string& interface, std::vector<WifiNetwork> &results)
 {
-  std::string out = run_cmd("/usr/sbin/iw dev wlp3s0 scan");
+  init(interface);
+  std::string out = run_cmd("/usr/sbin/iw dev " + interface + " scan");
   parse_scan_output(out, results);
 
   return true;
@@ -114,6 +119,7 @@ bool WifiHelper::scan(std::vector<WifiNetwork> &results)
 bool WifiHelper::connect(const std::string& interface, const WifiNetwork &network)
 {
   if (!network.ssid.has_value()) return false;
+  init(interface);
 
   std::string out = run_cmd("iw dev " + interface + " connect -w \"" + network.ssid.value() + "\"");
   return out.contains("connected to");
@@ -121,6 +127,7 @@ bool WifiHelper::connect(const std::string& interface, const WifiNetwork &networ
 
 void WifiHelper::disconnect(const std::string& interface)
 {
+  init(interface);
   run_cmd("iw dev " + interface + " disconnect");
 }
 
