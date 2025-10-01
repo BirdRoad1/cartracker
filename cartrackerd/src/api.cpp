@@ -1,9 +1,6 @@
-#define CPPHTTPLIB_OPENSSL_SUPPORT
-
 #include "api.h"
 #include <nlohmann/json.hpp>
 #include <iostream>
-// #include <httplib.h>
 #include "request_queue.h"
 #include "curl/curl.h"
 
@@ -60,7 +57,7 @@ bool API::sendNetworks(std::string baseUrl, RequestQueue networks, ConfigData &c
       return false;
     }
 
-    std::string fullUrl = std::string(baseUrl) + "/api/data";
+    std::string fullUrl = std::string(baseUrl) + "/api/v1/data";
     curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4); // force ipv4
 
