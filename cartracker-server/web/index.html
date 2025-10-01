@@ -15,10 +15,26 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/default.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+    <link rel="stylesheet" href="/css/index.css" />
   </head>
   <body>
+    <div class="navbar">
+      <a href="#">CarTracker</a>
+      <a href="/">Map</a>
+      <a href="/settings">Settings</a>
+      <a class="logout" href="/logout">Log Out</a>
+    </div>
     <div id="map"></div>
-    <script src="/js/map.js"></script>
+    <p class="warning" id="demo-warning">
+      Warning: Demo mode is enabled, so points on the map are from sample data.
+    </p>
+    <div class="location-updates">
+      <h3>Location Updates</h3>
+      <div class="location-update-scroll" id="location-updates"></div>
+    </div>
+    <script type="module" src="/js/map.js"></script>
+    <script type="module" src="/js/check-login.js"></script>
   </body>
 </html>

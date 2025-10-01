@@ -1,15 +1,19 @@
 import express from "express";
-import { geolocate } from "../geo";
-import { PostDataSchema } from "../schemas/api-schema";
-import { db } from "../db";
-import { Geolocation } from "../schemas/geo-schema";
+import { geolocate } from "../../geo";
+import { PostDataSchema } from "../../schemas/api.schema";
+import { db } from "../../db";
+import { Geolocation } from "../../schemas/geo.schema";
+import { authRouter } from "./auth.route";
+import { locationRouter } from "./location.route";
 
-const APIRouter = express.Router();
+const apiRouter = express.Router();
 
-APIRouter.use(express.json());
+apiRouter.use('/auth', authRouter);
+apiRouter.use('/location', locationRouter);
 
-let i = 0;
-APIRouter.post("/data", async (req, res) => {
+apiRouter.use(express.json());
+
+apiRouter.post("/data", async (req, res) => {
   const parsed = PostDataSchema.safeParse(req.body);
   if (!parsed.success) {
     console.log("Parse error:", parsed.error);
@@ -21,9 +25,6 @@ APIRouter.post("/data", async (req, res) => {
 
   console.log(`Received ${parsed.data.length} location updates`);
   for (const locationUpdate of parsed.data) {
-    console.log(
-      `Location update: ${JSON.stringify(locationUpdate, undefined, 4)}`
-    );
     let geo: Geolocation | undefined;
     try {
       geo = await geolocate(locationUpdate.aps);
@@ -49,15 +50,13 @@ APIRouter.post("/data", async (req, res) => {
     } catch (err) {
       console.log("Failed to insert into DB:", err);
     }
-
   }
-  console.log(i++);
 
   res.json({
     serverConfig: {
-      interval: 10,//10 * 60, // seconds
+      interval: 10 * 60, //10 * 60, // seconds
     },
   });
 });
 
-export { APIRouter };
+export { apiRouter };

@@ -1,0 +1,16 @@
+.navbar {
+  display: flex;
+  gap: 30px;
+  margin: 15px 20px;
+}
+.navbar a {
+  color: white;
+  font-family: 'Lato', sans-serif;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+.navbar a.logout {
+  margin-left: auto;
+  color: rgb(163, 79, 79);
+}

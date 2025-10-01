@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CarTracker | Settings</title>
+    <link rel="stylesheet" href="/css/default.css" />
+    <link rel="stylesheet" href="/css/navbar.css" />
+    <link rel="stylesheet" href="/css/settings.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <a href="/">CarTracker</a>
+      <a href="/">Map</a>
+      <a href="/settings">Settings</a>
+      <a class="logout" href="/logout">Log Out</a>
+    </div>
+    <div class="content">
+
+      <h1>Settings</h1>
+      <div>
+        <label for="delay">Update interval (seconds)</label>
+        <input type="number" name="delay" min="1" max="3600" step="1" id="interval" />
+      </div>
+      <button class="submit-btn" id="submit-btn">Update</button>
+    </div>
+    <script type="module" src="/js/check-login.js"></script>
+    <script type="module" src="/js/settings.js"></script>
+  </body>
+</html>

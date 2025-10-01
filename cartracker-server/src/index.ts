@@ -1,15 +1,16 @@
 import express from "express";
-import { APIRouter } from "./routes/api-router";
+import { apiRouter } from "./routes/api/index.route";
 import path from "path";
+import { env } from "./env/env";
 
 const app = express();
 
-app.use("/api", APIRouter);
+app.use("/api/v1/", apiRouter);
 
 app.use(express.static(path.resolve("./web/"), {
   extensions: ['html']
 }));
 
-app.listen(process.env.PORT, () => {
-  console.log(`Listening on http://127.0.0.1:${process.env.PORT}`);
+app.listen(env.PORT, () => {
+  console.log(`Listening on http://127.0.0.1:${env.PORT}`);
 });

@@ -20,7 +20,7 @@ html {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
 }
 
 input {
@@ -28,13 +28,20 @@ input {
   padding-left: 10px;
   border-radius: 3px;
   border: 1px solid grey;
-font-size: 14px;
+  font-size: 14px;
+  background-color: rgb(39, 39, 39);
+  color: white;
 }
 
 .submit-btn {
-  height: 40px;
+  height: 35px;
   background-color: rgb(49, 52, 143);
   color: white;
   border-radius: 4px;
   border: none;
+  cursor: pointer;
+}
+
+.tip {
+  color: rgb(201, 201, 201);
 }

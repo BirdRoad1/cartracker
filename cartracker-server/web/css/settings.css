@@ -1,0 +1,25 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px;
+  font-family: 'Lato', sans-serif;
+}
+
+input {
+  background-color: rgb(61, 61, 61);
+  border: 2px solid rgb(137, 137, 137);
+  color: white;
+  padding-left: 5px;
+}
+
+.submit-btn {
+  width: 140px;
+  height: 30px;
+  font-size: 14px;
+  color: white;
+  background-color: rgb(67, 10, 113);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

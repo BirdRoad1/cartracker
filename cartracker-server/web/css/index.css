@@ -1,1 +1,39 @@
-#map { height: 180px; }
+#map {
+  height: 50vh;
+}
+
+.warning {
+  display: none;
+  text-align: center;
+  margin-top: 15px;
+  font-family: "Lato", sans-serif;
+}
+
+.hue {
+  filter: hue-rotate(120deg);
+}
+
+.location-updates {
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(12, 12, 12);
+  width: 300px;
+  height: 300px;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 20px;
+  font-family: "Lato", sans-serif;
+  gap: 10px;
+}
+
+.location-update {
+  background-color: rgb(27, 27, 27);
+  padding: 5px;
+}
+
+.location-update-scroll {
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+  gap: 10px;
+}

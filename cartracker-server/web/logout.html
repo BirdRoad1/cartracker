@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CarTracker | Logout</title>
+    <link rel="stylesheet" href="/css/default.css">
+  </head>
+  <body>
+    <script type="module" src="/js/api.js"></script>
+    <script type="module">
+      import {API} from '/js/api.js';
+      API.logout();
+      location.href = '/'
+    </script>
+  </body>
+</html>

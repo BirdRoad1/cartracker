@@ -1,7 +1,7 @@
 import "dotenv/config";
 import z from "zod";
-import { ApSchema } from "./schemas/api-schema";
-import { Geolocation, GeolocationSchema } from "./schemas/geo-schema";
+import { ApSchema } from "./schemas/api.schema";
+import { Geolocation, GeolocationSchema } from "./schemas/geo.schema";
 
 type WifiNetwork = z.infer<typeof ApSchema>;
 
