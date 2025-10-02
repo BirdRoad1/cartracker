@@ -1,10 +1,17 @@
 # CarTracker
 
-A simple Raspberry Pi Zero W 2-based GPS tracker.
+A simple Raspberry Pi 3-based geolocation tracker.
 
-### Project vision
+https://cartracker.jlmsz.com/
 
-This project should leverage Xfinity's [hotspots](https://finder.wifi.xfinity.com/) available throughout the US. The tracker should automatically connect to the nearest hotspot and gather a list of nearby SSIDs and potentially bluetooth devices, and send them to the server. The server should then be able to use Google or other APIs to resolve a rough GPS location from the SSIDs.
+<img src="https://github.com/user-attachments/assets/2fb9218f-85f8-4b04-bd75-c67f1cea32f6" width="400">
+
+
+### What is this?
+
+This project leverages open Wi-Fi networks such as Xfinity's [hotspots](https://finder.wifi.xfinity.com/) available throughout the US. The tracker connects to certain open networks and uses the internet connection to send a list of nearby SSIDs to a server, which then uses Google's Geolocation API to derive a rough location.
+
+This project supports any 2.4/5Ghz Wi-Fi networks that are open and do not have captive portals.
 
 #### Use case
 
@@ -15,41 +22,32 @@ This project should leverage Xfinity's [hotspots](https://finder.wifi.xfinity.co
 
 #### Limitations
 
-The functionality of this project depends on how many XFINITY hotspots are in your area.
-
-Due to the lack of a GPS module, the location updates may not be very precise. I'll make a follow-up post after developing this project and testing it out for a few weeks.
-
-The Raspberry Pi's processor is weak, and relying on a battery means our code must be as lightweight as possible and unecessary services should be disabled.
-
-The Pi 3 Model A+ may use too much power at the moment, we should look at more efficient options later.
+The functionality of this project depends on how many open Wi-Fi hotspots are in your area.
 
 ## Dependencies
 
 Install dependencies on the Pi using apt:
-```bash
-sudo apt install cmake make g++ libcurl4-openssl-dev iw
 ```
-
-If cross-compiling, run this as well.
-```bash
-sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+sudo apt install cmake make g++ libcurl4-openssl-dev iw
 ```
 
 ### Requirements
 
-- [Raspberry Pi 3 Model A+](https://www.raspberrypi.com/products/raspberry-pi-3-model-a-plus/) - $25
+- [Raspberry Pi 3 Model A+ or similar](https://www.raspberrypi.com/products/raspberry-pi-3-model-a-plus/) - $25
 - MicroSD card - $7
 - MicroUSB cable - $5?
 - USB power bank or other power supply - $10
-- Access to XFINITY hotspots or any other open hotspots with no captive portal
-  - You must be an Xfinity postpaid subscriber or buy the Xfinity NOW pass ($10/month)
+- Access to open networks such as XFINITY hotspots
+  - To use XFINITY hotspots, you must be an Xfinity postpaid internet subscriber or have the Xfinity NOW pass ($10/month)
 
-Total: $47 plus $10/month if not an Xfinity subscriber.
+Total: $47 USD
 
-### cartrackerd
+### Components
+
+#### cartrackerd
 
 A daemon written in C++ that handles automatic connections to XFINITY hotspots and sending nearby SSIDs (and RSSI levels), bluetooth devices, and other data to the server.
 
-### cartracker-server
+#### cartracker-server
 
 A server written in Node.js that accepts data from the daemon and uses it to find the Pi's location. The daemon also stores data in a database and offers a web UI for administration and data viewing purposes.
